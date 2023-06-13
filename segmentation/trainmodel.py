@@ -5,9 +5,14 @@ import rasterio
 import numpy as np
 from rasterio.plot import show
 
-def readTiff(mapfile):
+def readData(mapfile):
     '''
-    Reads geotiff file 
+    Preprocessing of training data 
+    Parameters:
+        mapfile (str): path to txt file containing list of training data
+    Returns:
+        train_images: list of training images 
+        train_masks: list of training masks
     '''
 
     images = []
@@ -19,8 +24,12 @@ def readTiff(mapfile):
             element = element.replace('\\','/')
             element = element.split()
             if len(element) == 2:
-                images.append('/home/s1885898/scratch/data/202306031515133123358/' + element[0])
-                labels.append('/home/s1885898/scratch/data/202306031515133123358/' + element[1])
+                mask_loc = '/home/s1885898/scratch/data/202306112300064440299/' + element[1] 
+                lol = rasterio.open(mask_loc)
+                lol1 = lol.read()
+                if lol1.shape[0]==1:
+                    images.append('/home/s1885898/scratch/data/202306112300064440299/' + element[0])
+                    labels.append('/home/s1885898/scratch/data/202306112300064440299/' + element[1])
             else:
                 next
 
@@ -37,8 +46,15 @@ def readTiff(mapfile):
     
     return train_mask, train_images
 
-# Define the U-Net architecture
 def unet(input_shape):
+    """
+    Defines the U-Net architecture
+    Parameters:
+        input_shape: shape of the data going into the model
+    Returns:
+        model
+    """
+
     inputs = Input(input_shape)
 
     # Contracting path
@@ -93,7 +109,9 @@ def unet(input_shape):
     model = Model(inputs=inputs, outputs=outputs)
     return model
 
-train_mask, train_images = readTiff('/home/s1885898/scratch/data/202306031515133123358/map.txt')
+
+
+train_mask, train_images = readData('/home/s1885898/scratch/data/202306112300064440299/map.txt')
 
 #y_train = np.array(y_train)
 #X_train = np.array(y_train)
@@ -104,14 +122,14 @@ model = unet(input_shape)
 
 # Compile the model
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-#print(X_train.shape)
-#print(y_train.shape)
+
 
 train_images = np.transpose(train_images, [0,2,3,1])
-train_mask = np.transpose(train_mask, [0,2,3,1])
 
-print(train_images.shape)
-print(train_mask.shape)
+for mask in train_mask:
+    print(mask.shape)
+
+train_mask = np.transpose(train_mask, [0,2,3,1])
 
 # Train the model (replace X_train and y_train with your training data)
 model.fit(train_images, train_mask, batch_size=16, epochs=10, validation_split=0.2)
