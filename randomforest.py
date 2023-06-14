@@ -5,9 +5,7 @@ from osgeo import gdal
 import numpy as np
 from xml.etree import ElementTree as ET
 from sklearn.tree import export_graphviz
-from sklearn import tree
 from graphviz import Source
-import rasterio
 from sklearn.preprocessing import LabelEncoder
 
 # Loads Pascal VOC dataset and preprocesses the data
@@ -31,11 +29,20 @@ for image in image_path:
     nX = i.RasterXSize
     nY = i.RasterYSize
     image_data = []
-    for band in range(i.RasterCount):
-        data = i.GetRasterBand(band + 1).ReadAsArray(0, 0, nX, nY)
-        image_data.append(data)
-    image_data = np.array(image_data)
-    flattened_image = image_data.flatten()
+    step_size=50
+    datas = np.zeros([step_size, step_size,4])
+    nir=i.GetRasterBand(4).ReadAsArray()
+    blue=i.GetRasterBand(3).ReadAsArray()
+    green=i.GetRasterBand(2).ReadAsArray()
+    red=i.GetRasterBand(1).ReadAsArray()
+
+    datas[:,:,0] = red 
+    datas[:,:,1] = green
+    datas[:,:,2] = blue
+    datas[:,:,3] = nir
+
+    flattened_image=datas.flatten()
+    
     images.append(flattened_image)
 
 for label in labels_path:
@@ -91,3 +98,22 @@ dot_data = export_graphviz(tree_estimator,
 
 graph = Source(dot_data)
 graph.render("decision_tree")
+
+import matplotlib.pyplot as plt
+
+# Visualize the test images
+num_images = 5  # Number of images to visualize
+fig, axes = plt.subplots(1, num_images, figsize=(15, 5))
+
+for i in range(num_images):
+    image_show = X_test[i].reshape(50, 50, 4)
+    label = y_test[i]
+    pred_label = y_pred[i]
+    
+    # Display the image
+    axes[i].imshow(image_show[:, :, :3])  # Display only RGB bands, excluding NIR
+    axes[i].set_title(f"True: {label}\nPredicted: {pred_label}")
+    axes[i].axis('off')
+
+plt.tight_layout()
+plt.show()
