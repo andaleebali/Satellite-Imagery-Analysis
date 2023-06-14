@@ -57,7 +57,7 @@ def tiff_batches(image):
 
     xOrig = geolocation[0]
 
-    yOrigin = geolocation[3]
+    yOrig = geolocation[3]
 
     data2 = np.zeros([numberofrows*numberofcolumns, step_size*step_size*4])
 
@@ -82,7 +82,7 @@ def tiff_batches(image):
     return data2
 
 # Call on above function
-root='segmented_image.tif'
+root='/home/s1885898/scratch/data/Subset3_16_bit.tif'
 M, M_geotransform, numX, numY = readTiff(root)
 print(M_geotransform)
 img_size=50
@@ -116,8 +116,6 @@ for l in predict_labels:
 
 import matplotlib.pyplot as plt
 
-# Assuming label_mask is a 3D NumPy array with shape (num_samples, img_size, img_size)
-
 # Select a sample from the label mask
 sample_index = 0
 label_sample = label_mask[sample_index]
@@ -139,3 +137,31 @@ plt.title('Label Mask')
 
 # Show the plot
 plt.show()
+
+import matplotlib.pyplot as plt
+
+# Reshape label_mask to match the original image dimensions
+label_mask = np.reshape(predict_labels, (273, 141))
+
+#for label in predict_labels:
+
+
+# Cast label_mask to integer type
+
+label_mask = label_mask.astype(int)
+
+# Set the colormap to visualize the labels
+cmap = plt.cm.get_cmap('viridis', np.max(label_mask) + 1)
+
+# Plot the label mask
+plt.imshow(label_mask, cmap=cmap)
+plt.colorbar()
+
+# Set axis labels and title
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Label Mask')
+
+# Show the plot
+plt.show()
+
