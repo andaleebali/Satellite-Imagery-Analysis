@@ -7,6 +7,7 @@ from xml.etree import ElementTree as ET
 from sklearn.tree import export_graphviz
 from graphviz import Source
 from sklearn.preprocessing import LabelEncoder
+import matplotlib.pyplot as plt
 
 # Loads Pascal VOC dataset and preprocesses the data
 mapfile = '/home/s1885898/scratch/data/training_16_bit/map.txt'
@@ -29,21 +30,36 @@ for image in image_path:
     nX = i.RasterXSize
     nY = i.RasterYSize
     image_data = []
-    step_size=50
-    datas = np.zeros([step_size, step_size,4])
-    nir=i.GetRasterBand(4).ReadAsArray()
-    blue=i.GetRasterBand(3).ReadAsArray()
-    green=i.GetRasterBand(2).ReadAsArray()
-    red=i.GetRasterBand(1).ReadAsArray()
+    step_size = 50
+    datas = np.zeros([step_size, step_size, 4])
+
+    rgb=np.zeros([step_size, step_size, 3])
+
+
+
+    nir = i.GetRasterBand(4).ReadAsArray() / 32767.0
+    red = i.GetRasterBand(3).ReadAsArray() / 32767.0
+    green = i.GetRasterBand(2).ReadAsArray() / 32767.0
+    blue= i.GetRasterBand(1).ReadAsArray() / 32767.0
+
+
 
     datas[:,:,0] = red 
     datas[:,:,1] = green
     datas[:,:,2] = blue
     datas[:,:,3] = nir
 
-    flattened_image=datas.flatten()
+
+    rgb[:,:,0] = red 
+    rgb[:,:,1] = green
+    rgb[:,:,2] = blue
+
+    flattened_image = datas.flatten()
     
     images.append(flattened_image)
+
+plt.imshow(rgb)
+plt.show()
 
 for label in labels_path:
     tr = ET.parse(label)
@@ -53,6 +69,31 @@ for label in labels_path:
 
 images = np.array(images)
 labels = np.array(labels)
+
+# Visualize 5 sample images
+num_samples = 5
+fig, axes = plt.subplots(1, num_samples, figsize=(15, 5))
+
+for i in range(num_samples):
+    image_show = images[i].reshape(50, 50, 4)
+    label = labels[i]
+    
+    # Convert image from BGR to RGB
+    image_show_rgb = image_show[..., [0, 1, 2]]
+    
+    # Normalize pixel values to [0, 1] for 16-bit images
+    image_show_rgb = image_show_rgb.astype(float)
+    
+    # Clip pixel values to [0, 1]
+    image_show_rgb = np.clip(image_show_rgb, 0, 1)
+    
+    # Display the image
+    axes[i].imshow(image_show_rgb)  # Display RGB image
+    axes[i].set_title(f"Label: {label}")
+    axes[i].axis('off')
+
+plt.tight_layout()
+plt.show()
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=60)
@@ -99,8 +140,6 @@ dot_data = export_graphviz(tree_estimator,
 graph = Source(dot_data)
 graph.render("decision_tree")
 
-import matplotlib.pyplot as plt
-
 # Visualize the test images
 num_images = 5  # Number of images to visualize
 fig, axes = plt.subplots(1, num_images, figsize=(15, 5))
@@ -117,3 +156,4 @@ for i in range(num_images):
 
 plt.tight_layout()
 plt.show()
+
