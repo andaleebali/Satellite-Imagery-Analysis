@@ -38,7 +38,9 @@ for image in image_path:
     nir = i.GetRasterBand(1).ReadAsArray() / 255
     red = i.GetRasterBand(2).ReadAsArray() / 255
     green = i.GetRasterBand(3).ReadAsArray() / 255
+    alpha = i.GetRasterBand(4).ReadAsArray()
 
+    
 
     rgb[:,:,0] = nir 
     rgb[:,:,1] = red
