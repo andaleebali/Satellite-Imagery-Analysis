@@ -8,9 +8,10 @@ from sklearn.tree import export_graphviz
 from graphviz import Source
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
+import pickle
 
 # Loads Pascal VOC dataset and preprocesses the data
-mapfile = '/home/s1885898/scratch/data/training_16_bit/map.txt'
+mapfile = 'training_nirrg_8/map.txt'
 image_path = []
 labels_path = []
 
@@ -19,8 +20,8 @@ with open(mapfile) as file:
         element = line.strip('\n')
         element = element.replace('\\', '/')
         element = element.split()
-        image_path.append('/home/s1885898/scratch/data/training_16_bit/' + element[0])
-        labels_path.append('/home/s1885898/scratch/data/training_16_bit/' + element[1])
+        image_path.append('training_nirrg_8/' + element[0])
+        labels_path.append('training_nirrg_8/' + element[1])
 
 images = []
 labels = []
@@ -31,30 +32,19 @@ for image in image_path:
     nY = i.RasterYSize
     image_data = []
     step_size = 50
-    datas = np.zeros([step_size, step_size, 4])
 
     rgb=np.zeros([step_size, step_size, 3])
 
+    nir = i.GetRasterBand(1).ReadAsArray() / 255
+    red = i.GetRasterBand(2).ReadAsArray() / 255
+    green = i.GetRasterBand(3).ReadAsArray() / 255
 
 
-    nir = i.GetRasterBand(4).ReadAsArray() / 32767.0
-    red = i.GetRasterBand(3).ReadAsArray() / 32767.0
-    green = i.GetRasterBand(2).ReadAsArray() / 32767.0
-    blue= i.GetRasterBand(1).ReadAsArray() / 32767.0
+    rgb[:,:,0] = nir 
+    rgb[:,:,1] = red
+    rgb[:,:,2] = green
 
-
-
-    datas[:,:,0] = red 
-    datas[:,:,1] = green
-    datas[:,:,2] = blue
-    datas[:,:,3] = nir
-
-
-    rgb[:,:,0] = red 
-    rgb[:,:,1] = green
-    rgb[:,:,2] = blue
-
-    flattened_image = datas.flatten()
+    flattened_image = rgb.flatten()
     
     images.append(flattened_image)
 
@@ -75,7 +65,7 @@ num_samples = 5
 fig, axes = plt.subplots(1, num_samples, figsize=(15, 5))
 
 for i in range(num_samples):
-    image_show = images[i].reshape(50, 50, 4)
+    image_show = images[i].reshape(50, 50, 3)
     label = labels[i]
     
     # Convert image from BGR to RGB
@@ -95,6 +85,9 @@ for i in range(num_samples):
 plt.tight_layout()
 plt.show()
 
+print(images.shape)
+print(labels.shape)
+
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=60)
 
@@ -113,6 +106,8 @@ tree_estimator = clf.estimators_[0]
 
 # Predict the labels for the test set
 y_pred = clf.predict(X_test)
+
+pickle.dump(clf, open('model1.pkl',"wb"))
 
 # Calculate the accuracy of the classifier
 accuracy = accuracy_score(y_test, y_pred)
@@ -145,7 +140,7 @@ num_images = 5  # Number of images to visualize
 fig, axes = plt.subplots(1, num_images, figsize=(15, 5))
 
 for i in range(num_images):
-    image_show = X_test[i].reshape(50, 50, 4)
+    image_show = X_test[i].reshape(50, 50, 3)
     label = y_test[i]
     pred_label = y_pred[i]
     
