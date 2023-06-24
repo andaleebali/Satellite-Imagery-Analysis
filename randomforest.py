@@ -9,6 +9,7 @@ from graphviz import Source
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import pickle
+from rasterio.mask import mask
 
 # Loads Pascal VOC dataset and preprocesses the data
 mapfile = 'training_nirrg_8/map.txt'
@@ -38,9 +39,7 @@ for image in image_path:
     nir = i.GetRasterBand(1).ReadAsArray() / 255
     red = i.GetRasterBand(2).ReadAsArray() / 255
     green = i.GetRasterBand(3).ReadAsArray() / 255
-    alpha = i.GetRasterBand(4).ReadAsArray()
-
-    
+    alpha = i.GetRasterBand(4).ReadAsArray() / 255
 
     rgb[:,:,0] = nir 
     rgb[:,:,1] = red
@@ -99,17 +98,17 @@ y_train_encoded = label_encoder.fit_transform(y_train)
 y_test_encoded = label_encoder.transform(y_test)
 
 # Create a Random Forest classifier
-clf = RandomForestClassifier()
+model = RandomForestClassifier()
 
 # Train the classifier
-clf = clf.fit(X_train, y_train)
+model = model.fit(X_train, y_train)
 
-tree_estimator = clf.estimators_[0]
+tree_estimator = model.estimators_[0]
 
 # Predict the labels for the test set
-y_pred = clf.predict(X_test)
+y_pred = model.predict(X_test)
 
-pickle.dump(clf, open('model1.pkl',"wb"))
+pickle.dump(model, open('model1.pkl',"wb"))
 
 # Calculate the accuracy of the classifier
 accuracy = accuracy_score(y_test, y_pred)
