@@ -15,7 +15,7 @@ transposed_img = np.transpose(raster_data, (1, 2, 0))
 reshaped_data = transposed_img.reshape(-1, transposed_img.shape[-1])
 
 # Create the K-means clustering model
-model = KMeans(n_clusters=5)
+model = KMeans(n_clusters=5, random_state=90)
 
 # Fit the model to the reshaped data
 model.fit(reshaped_data)
@@ -45,3 +45,16 @@ classified_image = colors[labels_reshaped]
 plt.imshow(classified_image)
 plt.axis('off')
 plt.show()
+
+grayscale_image = np.dot(classified_image, [0.2989, 0.587, 0.114])
+# Get the metadata from the original raster dataset
+meta = opentif.meta
+
+# Update the metadata to match the classified image
+meta.update(count=1, dtype=str(grayscale_image.dtype))
+
+# Save the classified image as a GeoTIFF
+output_file = 'classified_image.tif'
+with rasterio.open(output_file, 'w', **meta) as dst:
+    dst.write(grayscale_image, 1)
+
