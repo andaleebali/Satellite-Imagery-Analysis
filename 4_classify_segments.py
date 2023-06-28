@@ -12,13 +12,13 @@ import time
 start = time.time()
 
 
+tiffile = '/home/s1885898/scratch/data/Subset3_nirrg.tif'
+opentif = rasterio.open(fp=tiffile)
+
 shppath = '/home/s1885898/scratch/data/OneDrive_1_15-06-2023/building_footprints.shp'
 shapefile = gpd.read_file(filename=shppath)
 
 print(shapefile.crs)
-
-tiffile = '/home/s1885898/scratch/data/Subset3_nirrg.tif'
-opentif = rasterio.open(fp=tiffile)
 
 shapefile = shapefile.to_crs(opentif.crs)
 
@@ -38,11 +38,11 @@ for index, row in shapefile.iterrows():
         print(geometry)
         geometry_list = [geometry]  # Create a list containing the single geometry
         masked_img, out_transform = mask(shapes=geometry_list, dataset=opentif, crop=True)
-        clipped_tiff = opentif.read(masked=True)[0]
         #show(masked_img, 3)
         #plt.show()
         normalise_tiff = masked_img / 255
-        resized_tiff = np.resize(masked_img, (1, 7500))  # Resize to 10,000 features
+        transposed_img = np.transpose(normalise_tiff, (1, 2, 0))
+        resized_tiff = np.resize(transposed_img, (1, 10000))  # Resize to 10,000 features
         #plt.imshow(resized_tiff)
         #plt.show()
 
