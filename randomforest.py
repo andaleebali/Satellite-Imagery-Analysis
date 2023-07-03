@@ -9,57 +9,197 @@ from graphviz import Source
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import pickle
-from rasterio.mask import mask
+from skimage.transform import resize
+import cv2
+import rasterio
 
-# Loads Pascal VOC dataset and preprocesses the data
-mapfile = 'training_nirrg_8/map.txt'
-image_path = []
-labels_path = []
+def get_training_data(path_to_data='training_data_rgb'):
+    """
+    Open the txt file for the training data and extracts the file path for each image and xml file
+    """
+    mapfile = path_to_data + '/map.txt'
+    image_path = []
+    label_path = []
 
-with open(mapfile) as file:
-    for line in file.readlines():
-        element = line.strip('\n')
-        element = element.replace('\\', '/')
-        element = element.split()
-        image_path.append('training_nirrg_8/' + element[0])
-        labels_path.append('training_nirrg_8/' + element[1])
+    with open(mapfile) as file:
+        for line in file.readlines():
+            element = line.strip('\n')
+            element = element.replace('\\', '/')
+            element = element.split()
+            image_path.append(path_to_data + '/' + element[0])
+            label_path.append(path_to_data + '/' + element[1])
 
-images = []
-labels = []
+    return image_path, label_path
 
-for image in image_path:
-    i = gdal.Open(image)
-    nX = i.RasterXSize
-    nY = i.RasterYSize
-    image_data = []
-    step_size = 50
+def preprocess_training_data(image_path, label_path):
+    images = []
+    labels = []
+    for image in image_path:
+        nX, nY, red, green, blue, alpha = preprocess_image(image)
 
-    rgb=np.zeros([step_size, step_size, 3])
+        rgb = np.zeros([nX, nY, 3])
+        rgb[:, :, 0] = red
+        rgb[:, :, 1] = green
+        rgb[:, :, 2] = blue
 
-    nir = i.GetRasterBand(1).ReadAsArray() / 255
-    red = i.GetRasterBand(2).ReadAsArray() / 255
-    green = i.GetRasterBand(3).ReadAsArray() / 255
-    alpha = i.GetRasterBand(4).ReadAsArray() / 255
+        #plt.imshow(rgb)
+        #plt.show()
+        
 
-    rgb[:,:,0] = nir 
-    rgb[:,:,1] = red
-    rgb[:,:,2] = green
-
-    flattened_image = rgb.flatten()
+        red_masked = red[alpha != 0]
+        green_masked = green[alpha != 0]
+        blue_masked = blue[alpha != 0]
     
-    images.append(flattened_image)
+        red_masked = resize(red_masked, (nX, nY))
+        green_masked = resize(green_masked, (nX, nY))
+        blue_masked = resize(blue_masked, (nX, nY))
 
-plt.imshow(rgb)
-plt.show()
+        rgb = np.zeros([nX, nY, 3])
+        rgb[:, :, 0] = red_masked
+        rgb[:, :, 1] = green_masked
+        rgb[:, :, 2] = blue_masked
 
-for label in labels_path:
+        #plt.imshow(rgb)
+        #plt.show()
+
+        flattened_image = rgb.flatten()
+        images.append(flattened_image)
+
+    for label in label_path:
+        classification = extract_classification(label)
+        labels.append(classification)
+
+    return images, labels
+
+
+def preprocess_image(image):
+    with rasterio.open(image) as dataset:
+        nX = dataset.width
+        nY = dataset.height
+
+        red = dataset.read(1)
+        green = dataset.read(2)
+        blue = dataset.read(3)
+        alpha = dataset.read(4)
+
+    return nX, nY, red, green, blue, alpha
+
+def extract_classification(label):
     tr = ET.parse(label)
     root = tr.getroot()
     for elem in root.iter('name'):
-        labels.append(elem.text)
+        classification = elem.text
+    return classification
 
-images = np.array(images)
-labels = np.array(labels)
+
+def augment_flip(image_path, label_path):
+    images = []
+    labels = []
+    for image in image_path:
+        nX, nY, red, green, blue, alpha = preprocess_image(image)
+        
+        flipped_red = np.fliplr(red)
+        flipped_green = np.fliplr(green)
+        flipped_blue = np.fliplr(blue)
+        flipped_alpha = np.fliplr(alpha)
+
+        red_masked = flipped_red[flipped_alpha != 0]
+        green_masked = flipped_green[flipped_alpha != 0]
+        blue_masked = flipped_blue[flipped_alpha != 0]
+    
+        red_masked = resize(red_masked, (nX, nY))
+        green_masked = resize(green_masked, (nX, nY))
+        blue_masked = resize(blue_masked, (nX, nY))
+
+        
+        rgb = np.zeros([nX, nY, 3])
+        
+        rgb[:, :, 0] = red_masked
+        rgb[:, :, 1] = green_masked
+        rgb[:, :, 2] = blue_masked
+
+        print (red[0])
+        print(flipped_red[0])
+
+        flattened_image = rgb.flatten()
+        images.append(flattened_image)
+
+
+    for label in label_path:
+        classification = extract_classification(label)
+        labels.append(classification)
+
+    
+    return images, labels
+
+
+import skimage.io as io
+from skimage import exposure
+
+def augment_flip_rotate_equalize(image_path, label_path):
+    images = []
+    labels = []
+    for image in image_path:
+        nX, nY, red, green, blue, alpha = preprocess_image(image)
+        
+        # Flip image horizontally
+        flipped_red = np.fliplr(red)
+        flipped_green = np.fliplr(green)
+        flipped_blue = np.fliplr(blue)
+        flipped_alpha = np.fliplr(alpha)
+
+        red_masked = flipped_red[flipped_alpha != 0]
+        green_masked = flipped_green[flipped_alpha != 0]
+        blue_masked = flipped_blue[flipped_alpha != 0]
+    
+        red_masked = resize(red_masked, (nX, nY))
+        green_masked = resize(green_masked, (nX, nY))
+        blue_masked = resize(blue_masked, (nX, nY))
+
+        rgb_flip = np.zeros([nX, nY, 3])
+        
+        rgb_flip[:, :, 0] = red_masked
+        rgb_flip[:, :, 1] = green_masked
+        rgb_flip[:, :, 2] = blue_masked
+
+        # Rotate image by 45 degrees
+        rotation_angle = 45
+        rotation_matrix = cv2.getRotationMatrix2D((nX/2, nY/2), rotation_angle, 1.0)
+        rotated_rgb = cv2.warpAffine(rgb_flip, rotation_matrix, (nY, nX))
+
+        flattened_image = rotated_rgb.flatten()
+        images.append(flattened_image)
+
+
+    for label in label_path:
+        classification = extract_classification(label)
+        labels.append(classification)
+
+    
+    return images, labels
+
+image_path, label_path = get_training_data()
+images, labels, = preprocess_training_data(image_path, label_path)
+augmented_images, augmented_labels = augment_flip(image_path, label_path)
+augmented_images2, augmented_labels2 = augment_flip_rotate_equalize(image_path, label_path)
+
+combined_images = []
+combined_labels = []
+
+# Add original images and labels
+combined_images.extend(images)
+combined_labels.extend(labels)
+
+# Add augmented images and labels
+combined_images.extend(augmented_images)
+combined_labels.extend(augmented_labels)
+
+# Add augmented images and labels
+combined_images.extend(augmented_images2)
+combined_labels.extend(augmented_labels2)
+
+images = np.array(combined_images)
+labels = np.array(combined_labels)
 
 # Visualize 5 sample images
 num_samples = 5
@@ -152,4 +292,3 @@ for i in range(num_images):
 
 plt.tight_layout()
 plt.show()
-
