@@ -1,7 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-from osgeo import gdal
 import numpy as np
 from xml.etree import ElementTree as ET
 from sklearn.tree import export_graphviz
@@ -13,7 +12,7 @@ from skimage.transform import resize
 import cv2
 import rasterio
 
-def get_training_data(path_to_data='training_data_rgb'):
+def get_training_data(path_to_data='training_data_all_types'):
     """
     Open the txt file for the training data and extracts the file path for each image and xml file
     """
