@@ -5,10 +5,7 @@ import pickle
 from matplotlib import pyplot as plt
 from rasterio.mask import mask
 from rasterio.plot import show
-import time
 from skimage.transform import resize
-
-start = time.time()
 
 def prepare_roof(geometry, opentif):
     geometry_list = [geometry]  # Create a list containing the single geometry
@@ -91,10 +88,6 @@ for index, row in shapefile.iterrows():
         continue  # Skip to the next iteration if an error occurs
 
 # Save the updated shapefile
-output_shapefile_path = '/home/s1885898/scratch/data/OneDrive_1_15-06-2023/all_buildings_predictions_rgb_remblack.shp'
+output_shapefile_path = '/home/s1885898/scratch/data/OneDrive_1_15-06-2023/building_all_roof_types.shp'
 shapefile.to_file(output_shapefile_path)
 opentif.close()
-
-end = time.time()
-totaltime = end - start
-print ("\n" + str(totaltime))
