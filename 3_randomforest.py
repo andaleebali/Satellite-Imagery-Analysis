@@ -97,10 +97,10 @@ def augment_flip(image_path, label_path):
     for image in image_path:
         nX, nY, red, green, blue, alpha = preprocess_image(image)
         
-        flipped_red = np.fliplr(red)
-        flipped_green = np.fliplr(green)
-        flipped_blue = np.fliplr(blue)
-        flipped_alpha = np.fliplr(alpha)
+        flipped_red = np.flipud(red)
+        flipped_green = np.flipud(green)
+        flipped_blue = np.flipud(blue)
+        flipped_alpha = np.flipud(alpha)
 
         red_masked = flipped_red[flipped_alpha != 0]
         green_masked = flipped_green[flipped_alpha != 0]
@@ -117,8 +117,8 @@ def augment_flip(image_path, label_path):
         rgb[:, :, 1] = green_masked
         rgb[:, :, 2] = blue_masked
 
-        print (red[0])
-        print(flipped_red[0])
+        plt.imshow(rgb)
+        plt.show()
 
         flattened_image = rgb.flatten()
         images.append(flattened_image)
@@ -131,25 +131,15 @@ def augment_flip(image_path, label_path):
     
     return images, labels
 
-
-import skimage.io as io
-from skimage import exposure
-
-def augment_flip_rotate_equalize(image_path, label_path):
+def augment_flip_rotate_90(image_path, label_path):
     images = []
     labels = []
     for image in image_path:
         nX, nY, red, green, blue, alpha = preprocess_image(image)
         
-        # Flip image horizontally
-        flipped_red = np.fliplr(red)
-        flipped_green = np.fliplr(green)
-        flipped_blue = np.fliplr(blue)
-        flipped_alpha = np.fliplr(alpha)
-
-        red_masked = flipped_red[flipped_alpha != 0]
-        green_masked = flipped_green[flipped_alpha != 0]
-        blue_masked = flipped_blue[flipped_alpha != 0]
+        red_masked = red[alpha != 0]
+        green_masked = green[alpha != 0]
+        blue_masked = blue[alpha != 0]
     
         red_masked = resize(red_masked, (nX, nY))
         green_masked = resize(green_masked, (nX, nY))
@@ -162,9 +152,12 @@ def augment_flip_rotate_equalize(image_path, label_path):
         rgb_flip[:, :, 2] = blue_masked
 
         # Rotate image by 45 degrees
-        rotation_angle = 45
+        rotation_angle = 90
         rotation_matrix = cv2.getRotationMatrix2D((nX/2, nY/2), rotation_angle, 1.0)
         rotated_rgb = cv2.warpAffine(rgb_flip, rotation_matrix, (nY, nX))
+
+        plt.imshow(rotated_rgb)
+        plt.show()
 
         flattened_image = rotated_rgb.flatten()
         images.append(flattened_image)
@@ -180,7 +173,7 @@ def augment_flip_rotate_equalize(image_path, label_path):
 image_path, label_path = get_training_data()
 images, labels, = preprocess_training_data(image_path, label_path)
 augmented_images, augmented_labels = augment_flip(image_path, label_path)
-augmented_images2, augmented_labels2 = augment_flip_rotate_equalize(image_path, label_path)
+augmented_images2, augmented_labels2 = augment_flip_rotate_90(image_path, label_path)
 
 combined_images = []
 combined_labels = []
