@@ -1,5 +1,6 @@
+# Script for training the Random Forest Classifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 import numpy as np
 from xml.etree import ElementTree as ET
@@ -12,9 +13,16 @@ from skimage.transform import resize
 import cv2
 import rasterio
 
-def get_training_data(path_to_data='training_data_all_types'):
+def get_training_data(path_to_data='Inputs/training_data_attempt_1'):
     """
     Open the txt file for the training data and extracts the file path for each image and xml file
+
+        Parameters:
+            path_to_data (str): file path to training data folder
+
+        Returns:
+            image_path (list): list of image file paths
+            label_path (list): list of xml file paths
     """
     mapfile = path_to_data + '/map.txt'
     image_path = []
@@ -31,6 +39,16 @@ def get_training_data(path_to_data='training_data_all_types'):
     return image_path, label_path
 
 def preprocess_training_data(image_path, label_path):
+    """
+    Function to extract image pixel values and labels and store them in a list
+        Parameters:
+            image_path (list): list of image file paths
+            label_path (list): list of xml file paths
+
+        Returns:
+            images (list): list of image pixel values for each image
+            labels (list): list of labels for each image
+    """
     images = []
     labels = []
     for image in image_path:
@@ -72,6 +90,19 @@ def preprocess_training_data(image_path, label_path):
 
 
 def preprocess_image(image):
+    """
+    Function to open raster image and extract pixel values
+        parameters:
+            image (string): file path to image
+
+        returns:
+            nX (int): pixel width of image 
+            nY (int): pixel height of image
+            red (array): values from red band of image
+            green (array): values from green band of image
+            blue (array): values from blue band of image
+            alpha (array): values from alpha band of image
+    """
     with rasterio.open(image) as dataset:
         nX = dataset.width
         nY = dataset.height
@@ -84,6 +115,14 @@ def preprocess_image(image):
     return nX, nY, red, green, blue, alpha
 
 def extract_classification(label):
+    """
+    Function to open xml file and extract the class an image belongs to
+        Parameters:
+            label (string): File path to xml
+
+        Returns:
+            classification (string): class of associated image
+    """
     tr = ET.parse(label)
     root = tr.getroot()
     for elem in root.iter('name'):
@@ -92,6 +131,15 @@ def extract_classification(label):
 
 
 def augment_flip(image_path, label_path):
+    """
+    Function to extract an augmented version of the training data. The data is flipped vertically.
+        Parameters:
+            image_path (list): list of image file paths
+            label_path (list): list of xml file paths
+        Returns:
+            images (list): list of image pixel values for each image
+            labels (list): list of labels for each image
+    """
     images = []
     labels = []
     for image in image_path:
@@ -117,21 +165,28 @@ def augment_flip(image_path, label_path):
         rgb[:, :, 1] = green_masked
         rgb[:, :, 2] = blue_masked
 
-        plt.imshow(rgb)
-        plt.show()
+        #plt.imshow(rgb)
+        #plt.show()
 
         flattened_image = rgb.flatten()
         images.append(flattened_image)
-
 
     for label in label_path:
         classification = extract_classification(label)
         labels.append(classification)
 
-    
     return images, labels
 
 def augment_flip_rotate_90(image_path, label_path):
+    """
+    Function to extract an augmented version of the training data. The data is rotated 90 degrees anticlockwise.
+        Parameters:
+            image_path (list): list of image file paths
+            label_path (list): list of xml file paths
+        Returns:
+            images (list): list of image pixel values for each image
+            labels (list): list of labels for each image
+    """
     images = []
     labels = []
     for image in image_path:
@@ -151,13 +206,13 @@ def augment_flip_rotate_90(image_path, label_path):
         rgb_flip[:, :, 1] = green_masked
         rgb_flip[:, :, 2] = blue_masked
 
-        # Rotate image by 45 degrees
+        # Rotate image by 90 degrees
         rotation_angle = 90
         rotation_matrix = cv2.getRotationMatrix2D((nX/2, nY/2), rotation_angle, 1.0)
         rotated_rgb = cv2.warpAffine(rgb_flip, rotation_matrix, (nY, nX))
 
-        plt.imshow(rotated_rgb)
-        plt.show()
+        #plt.imshow(rotated_rgb)
+        #plt.show()
 
         flattened_image = rotated_rgb.flatten()
         images.append(flattened_image)
@@ -229,7 +284,7 @@ label_encoder = LabelEncoder()
 y_train_encoded = label_encoder.fit_transform(y_train)
 y_test_encoded = label_encoder.transform(y_test)
 
-# Create a Random Forest classifier
+# Initiates the Random Forest classifier
 model = RandomForestClassifier()
 
 # Train the classifier
@@ -240,7 +295,8 @@ tree_estimator = model.estimators_[0]
 # Predict the labels for the test set
 y_pred = model.predict(X_test)
 
-pickle.dump(model, open('model1.pkl',"wb"))
+# Saves model to a .pkl file
+pickle.dump(model, open('model.pkl',"wb"))
 
 # Calculate the accuracy of the classifier
 accuracy = accuracy_score(y_test, y_pred)
@@ -259,11 +315,12 @@ for i in range(len(class_names)):
 feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
 class_names = np.unique(y_train)
 
-dot_data = export_graphviz(tree_estimator,
-                           feature_names=feature_names,
-                           class_names=class_names,
-                           filled=True,
-                           rounded=True)
+dot_data = export_graphviz(
+    tree_estimator,
+    feature_names=feature_names,
+    class_names=class_names,
+    filled=True,
+    rounded=True)
 
 graph = Source(dot_data)
 graph.render("decision_tree")
@@ -284,3 +341,6 @@ for i in range(num_images):
 
 plt.tight_layout()
 plt.show()
+
+classification_report=classification_report(y_test, y_pred)
+print(classification_report)
