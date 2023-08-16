@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the raster dataset
-tiffile = '/home/s1885898/scratch/data/Subset3_8bit.tif'
+tiffile = 'SI_TEST.tif'
 opentif = rasterio.open(tiffile)
 
 # Read the raster data as a numpy array
@@ -15,7 +15,7 @@ transposed_img = np.transpose(raster_data, (1, 2, 0))
 reshaped_data = transposed_img.reshape(-1, transposed_img.shape[-1])
 
 # Create the K-means clustering model
-model = KMeans(n_clusters=5, random_state=90)
+model = KMeans(n_clusters=8, random_state=100)
 
 # Fit the model to the reshaped data
 model.fit(reshaped_data)
@@ -27,19 +27,19 @@ labels = model.labels_
 labels_reshaped = labels.reshape(transposed_img.shape[:-1])
 
 # Assign unique colors to each cluster label
-colors = np.array([
+colours = np.array([
     [0, 32, 46], 
-    #[0, 63, 92], 
+    [0, 63, 92], 
     [44, 72, 117], 
-    #[138, 80, 143], 
+    [138, 80, 143], 
     [188,80,144], 
-    #[255,99,97],
+    [255,99,97],
     [255,133,49],
-    #[255,166,0], 
+    [255,166,0], 
     [255,211,128]])
 
 # Create the classified image
-classified_image = colors[labels_reshaped]
+classified_image = colours[labels_reshaped]
 
 # Display the classified image
 plt.imshow(classified_image)
@@ -54,6 +54,6 @@ meta = opentif.meta
 meta.update(count=1, dtype=str(grayscale_image.dtype))
 
 # Save the classified image as a GeoTIFF
-output_file = 'classified_image.tif'
+output_file = 'classified_image_8.tif'
 with rasterio.open(output_file, 'w', **meta) as dst:
     dst.write(grayscale_image, 1)
