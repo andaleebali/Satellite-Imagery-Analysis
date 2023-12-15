@@ -8,9 +8,9 @@ The code uses the following Python packages:
 You will require an image:
 to be analysed in geotiff format
 
-Training data: from Labelled something
+Training data: 
 
-Shapefile of segments to be classification
+Shapefile of segments to be classified
 
 ## How to run
 If you need to segment the image first use the script segmenting.py
