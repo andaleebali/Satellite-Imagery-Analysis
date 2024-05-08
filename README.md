@@ -1,5 +1,6 @@
 # Classifiying Buildings in High Resolution Imagery
-The following code was created to classify building rooftops in Bulawayo, Zimbabwe using WorldView-2 satellite imagery. More details of this can be found here:
+The following code was created to classify building rooftops in Bulawayo, Zimbabwe using WorldView-2 satellite imagery. More details of this can be found here: https://www.geos.ed.ac.uk/~mscgis/22-23/s1885898/
+
 
 ## Prerequisites
 The code uses the following Python packages:
