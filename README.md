@@ -5,9 +5,32 @@ The following code was created to classify building rooftops in Bulawayo, Zimbab
 ## Prerequisites
 The code uses the following Python packages:
 
+For the SAM/segmenting.py: 
+os
+SamGeo
+
+3_randomforest.py
+sklearn
+numpy
+xml
+graphviz
+matplotlib
+pickle
+skimage
+cv2
+rasterio
+
+4_classify_segments.py
+geopandas
+numpy
+rasterio
+pickle
+matplotlib
+rasterio
+skimage
+
 ## How to get started?
-You will require an image:
-to be analysed in geotiff format
+You will require an image to be analysed in geotiff format
 
 Training data: 
 
