@@ -9,7 +9,7 @@ For the SAM/segmenting.py:
 os
 SamGeo
 
-3_randomforest.py
+3_randomforest.py:
 sklearn
 numpy
 xml
@@ -20,7 +20,7 @@ skimage
 cv2
 rasterio
 
-4_classify_segments.py
+4_classify_segments.py:
 geopandas
 numpy
 rasterio
