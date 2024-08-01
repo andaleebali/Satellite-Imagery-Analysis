@@ -1,48 +1,46 @@
-# Classifiying Buildings in High Resolution Imagery
-The following code was created to classify building rooftops in Bulawayo, Zimbabwe using WorldView-2 satellite imagery. More details of this can be found here: https://www.geos.ed.ac.uk/~mscgis/22-23/s1885898/
+# Classifying Buildings in High Resolution Imagery
 
+The following code was developed to classify building rooftops in Bulawayo, Zimbabwe using WorldView-2 satellite imagery but could be used and applied to a variety of applications. More details of this can be found here. https://www.geos.ed.ac.uk/~mscgis/22-23/s1885898/
+
+## Description
+This project aims to classify building rooftops using high-resolution satellite imagery. The process involves segmenting the imagery and then classifying the segments using a Random Forest classifier.
 
 ## Prerequisites
 The code uses the following Python packages:
 
-For the SAM/segmenting.py: 
-os
-SamGeo
+### For `SAM/segmenting.py`:
+- `os`
+- `SamGeo`
 
-3_randomforest.py:
-sklearn
-numpy
-xml
-graphviz
-matplotlib
-pickle
-skimage
-cv2
-rasterio
+### For `3_randomforest.py`:
+- `sklearn`
+- `numpy`
+- `xml`
+- `graphviz`
+- `matplotlib`
+- `pickle`
+- `skimage`
+- `cv2`
+- `rasterio`
 
-4_classify_segments.py:
-geopandas
-numpy
-rasterio
-pickle
-matplotlib
-rasterio
-skimage
+### For `4_classify_segments.py`:
+- `geopandas`
+- `numpy`
+- `rasterio`
+- `pickle`
+- `matplotlib`
+- `skimage`
 
-## How to get started?
-You will require an image to be analysed in geotiff format
+## How to Get Started
+You will require an image to be analyzed in GeoTIFF format and a shapefile of segments to be classified.
 
-Training data: 
+## How to Run
+### Segmenting the Image
+If you need to segment the image first, use the script `segmenting.py`.
 
-Shapefile of segments to be classified
+### Classification
+1. Update the file path to the training data and run the `randomforest.py` script. This will output a `model.pkl` file to be used for classification.
+2. Update the file paths to the image and shapefile of segments and run the script `classify_segments.py`. This will output a shapefile containing the classification of each segment.
 
-## How to run
-If you need to segment the image first use the script segmenting.py
-
-For classification:
-Update file path to training data and run the randomforest.py script
-This will output a model.pkl file to be used for classification
-Update the file paths to the image and shapefile of segments and run the script classify_segments.py
-This will output a shapefile containing the classification of each segment
-
-
+## License
+Include your project's license information her
