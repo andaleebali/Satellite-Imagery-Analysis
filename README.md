@@ -3,10 +3,10 @@
 The following code was developed to classify building rooftops in Bulawayo, Zimbabwe using WorldView-2 satellite imagery but could be used and applied to a variety of applications. More details of this can be found here. https://www.geos.ed.ac.uk/~mscgis/22-23/s1885898/
 
 ## Description
-This project aims to classify building rooftops using high-resolution satellite imagery. The process involves segmenting the imagery and then classifying the segments using a Random Forest classifier.
+This project aims to classify building rooftops using high-resolution satellite imagery. The process involves segmenting the imagery using a combination of Microsoft Building Footprint data and the Segment Anything Method (SAM) to fill in any gaps in the dataset. Then classifying the segments using a Random Forest classifier. The project was initially developed to analyze building rooftops in Bulawayo, Zimbabwe, but the methodology could be applied to various other regions and applications.
 
 ## Prerequisites
-The code uses the following Python packages:
+The following Python packages are used in the code:
 
 ### For `SAM/segmenting.py`:
 - `os`
@@ -43,4 +43,3 @@ If you need to segment the image first, use the script `segmenting.py`.
 2. Update the file paths to the image and shapefile of segments and run the script `classify_segments.py`. This will output a shapefile containing the classification of each segment.
 
 ## License
-Include your project's license information her
